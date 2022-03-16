@@ -55,13 +55,6 @@ class UnivariateGaussian:
         Sets `self.mu_`, `self.var_` attributes according to calculated estimation (where
         estimator is either biased or unbiased). Then sets `self.fitted_` attribute to `True`
         """
-        # m = X.size
-        # self.mu_ = X.sum() / m
-        # if self.biased_:
-        #     self.var_ =(((X - self.mu_)*(X - self.mu_)).sum()) / m
-        # else:
-        #     self.var_ = (((X - self.mu_) * (X - self.mu_)).sum()) / (m - 1)
-        # raise NotImplementedError()
         if self.biased_:
             self.var_ = X.var(ddof=0)
         else:
@@ -204,69 +197,33 @@ class MultivariateGaussian:
                np.exp((-0.5) * (X - self.mu_).sum().dot(inverse).dot((X - self.mu)))
 
 
-def log_likelihood(mu: np.ndarray, cov: np.ndarray, X: np.ndarray) -> float:
-    """
-    Calculate the log-likelihood of the data under a specified Gaussian model
+    def log_likelihood(mu: np.ndarray, cov: np.ndarray, X: np.ndarray) -> float:
+        """
+        Calculate the log-likelihood of the data under a specified Gaussian model
 
-    Parameters
-    ----------
-    mu : float
-        Expectation of Gaussian
-    cov : float
-        covariance matrix of Gaussian
-    X : ndarray of shape (n_samples, )
-        Samples to calculate log-likelihood with
+        Parameters
+        ----------
+        mu : float
+            Expectation of Gaussian
+        cov : float
+            covariance matrix of Gaussian
+        X : ndarray of shape (n_samples, )
+            Samples to calculate log-likelihood with
 
-    Returns
-    -------
-    log_likelihood: float
-        log-likelihood calculated
-    """
-    m = X.shape[0]
-    md = X.size
-    B = 0
-    for i in range(m):
-        B += np.linalg.multi_dot([(X[i] - mu).transpose(), inv(cov), (X[i] - mu)])
-    A = md*np.log(2*np.pi) + m*np.log(det(cov))
-    return -0.5 * (A + B )
+        Returns
+        -------
+        log_likelihood: float
+            log-likelihood calculated
+        """
+        m = X.shape[0]
+        md = X.size
+        B = 0
+        for i in range(m):
+            B += np.linalg.multi_dot([(X[i] - mu).transpose(), inv(cov), (X[i] - mu)])
+        A = md*np.log(2*np.pi) + m*np.log(det(cov))
+        return -0.5 * (A + B)
 
 
-if __name__ == '__main__':
-    # q1
-    mu1 = 10
-    sigma1 = 1
-    X1 = np.random.normal(mu1, sigma1, 1000)
-    UG = UnivariateGaussian()
-    UG.fit(X1)
-    print("expectation1: ", UG.mu_, "variance1: ", UG.var_, "\n")
-    arr = np.ndarray(100)
-    for i, smp in enumerate(range(10, 1001, 10)):
-        temp = UnivariateGaussian()
-        temp.fit(X1[:smp])
-        arr[i] = np.abs(temp.mu_ - mu1)
-    # q2
-    px.scatter( x= np.array(list(range(10,1001, 10))), y = arr, title="question 2").update_xaxes\
-        (title_text="sample size").update_yaxes(title_text="|estimated - true value of expectation|").show()
-    # # q3
-    px.scatter(x=X1, y=UG.pdf(X1), title="question 3").update_xaxes\
-        (title_text="ordered sample values").update_yaxes(title_text="PDF").show()
-    # q4
-    mu2 = np.array([0,0,4,0])
-    cov_matrix = np.array([[1, 0.2, 0, 0.5], [0.2, 2, 0, 0], [0, 0, 1, 0], [0.5, 0, 0, 1]])
-    X2 = np.random.multivariate_normal(mu2, cov_matrix, 1000)
-    MG = MultivariateGaussian()
-    MG.fit(X2)
-    print("expectation2: \n", MG.mu_, "\n", "covar matrix: \n", MG.cov_)
-    # q5
-    f1 = np.linspace(-10, 10, 200)
-    f3 = np.linspace(-10, 10, 200)
-    log_matrix = np.array([[log_likelihood(np.array([f1[i], 0, f3[j], 0]), cov_matrix, X2)
-                            for j in range(200)] for i in range(200)])
-    px.imshow(log_matrix, x=f1, y=f3, labels=dict(x="f1", y="f3", color="log-likelihood"), title="question 5").show()
-    # q6
-    max_val = np.amax(log_matrix)
-    max_location = np.where(log_matrix == max_val)
-    print("max log-likelihood value: ", max_val, "f1 index: ", max_location[0][0], "f3 index: ", max_location[1][0])
 
 
 
