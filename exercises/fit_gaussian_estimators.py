@@ -42,7 +42,6 @@ def test_multivariate_gaussian():
     log_matrix = np.array([[MultivariateGaussian.log_likelihood(np.array([f1[i], 0, f3[j], 0]), cov_matrix, X2)
                             for j in range(200)] for i in range(200)])
     px.imshow(log_matrix, x=f1, y=f3, labels=dict(x="f1", y="f3", color="log-likelihood"), title="question 5").show()
-
     # Question 6 - Maximum likelihood
     max_val = np.amax(log_matrix)
     max_location = np.where(log_matrix == max_val)
