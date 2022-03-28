@@ -10,7 +10,10 @@ from plotly.subplots import make_subplots
 import plotly.io as pio
 pio.templates.default = "simple_white"
 
-
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', 1000)
+pd.set_option('display.colheader_justify', 'center')
+pd.set_option('display.precision', 3)
 
 def load_data(filename: str):
     """
@@ -25,8 +28,35 @@ def load_data(filename: str):
     Design matrix and response vector (prices) - either as a single
     DataFrame or a Tuple[DataFrame, Series]
     """
+
     houses_df = pd.read_csv(filename)
-    print(houses_df.head)
+    # cleaning bad data
+    bad_index = houses_df[(houses_df['price'] <= 0) | (houses_df['sqft_lot15'] <= 0)].index
+    houses_df.drop(bad_index, axis=0, inplace=True)
+    # combined renovation date and year built to more recent, and converted to age
+    houses_df['yr_built'].replace(2015 - np.maximum(houses_df['yr_built'], houses_df['yr_renovated']), inplace=True)
+    houses_df.rename(columns={}, inplace=True)
+    # there is a large correlation between month sold and price
+    houses_df['date'] = houses_df['date'].str[0:6]
+    # lat in (47.1559,47.776) long in (-121.315, -122.519), there is a large correlation between location and price
+    # so I divided location into 9 square areas
+    houses_df['lat'] = pd.qcut(houses_df['lat'], 3, labels=['1','2','3'])
+    houses_df['long'] = pd.qcut(houses_df['long'], 3, labels=['a','b','c'])
+    houses_df['lat'] = houses_df['lat'].astype(str) + houses_df['long'].astype(str)
+    houses_df['zipcode'] = pd.cut(houses_df['zipcode'], 10, labels=[1,2,3,4,5,6,7,8,9,10])
+    # yes or no basement
+    houses_df['sqft_basement'] = (houses_df['sqft_basement'] > 0).astype(int)
+    # floors and conditions are not linear
+    houses_df.rename(columns={'lat': 'area', 'yr_built':'age', 'sqft_basement': 'basement Y/N'}, inplace=True)
+    price = houses_df['price']
+    houses_df = pd.get_dummies(houses_df, columns=['zipcode','date', 'area','floors','condition', 'view'])
+    # combining waterfront and view
+    houses_df.drop(['id', "yr_renovated", 'long',
+                    'view_0.0','price'], axis=1, inplace=True)
+    print(houses_df.head(), "\n\n\n")
+    print(houses_df.columns.size)
+    return [houses_df, price]
+
 
 
 def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") -> NoReturn:
