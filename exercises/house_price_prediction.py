@@ -6,8 +6,10 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
+from plotly.subplots import make_subplots
 import plotly.io as pio
 pio.templates.default = "simple_white"
+
 
 
 def load_data(filename: str):
@@ -23,7 +25,8 @@ def load_data(filename: str):
     Design matrix and response vector (prices) - either as a single
     DataFrame or a Tuple[DataFrame, Series]
     """
-    raise NotImplementedError()
+    houses_df = pd.read_csv(filename)
+    print(houses_df.head)
 
 
 def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") -> NoReturn:
@@ -49,13 +52,14 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
 if __name__ == '__main__':
     np.random.seed(0)
     # Question 1 - Load and preprocessing of housing prices dataset
-    raise NotImplementedError()
+    load_data("..\datasets\house_prices.csv")
+
 
     # Question 2 - Feature evaluation with respect to response
-    raise NotImplementedError()
+    # raise NotImplementedError()
 
     # Question 3 - Split samples into training- and testing sets.
-    raise NotImplementedError()
+    # raise NotImplementedError()
 
     # Question 4 - Fit model over increasing percentages of the overall training data
     # For every percentage p in 10%, 11%, ..., 100%, repeat the following 10 times:
@@ -64,4 +68,4 @@ if __name__ == '__main__':
     #   3) Test fitted model over test set
     #   4) Store average and variance of loss over test set
     # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
-    raise NotImplementedError()
+    # raise NotImplementedError()

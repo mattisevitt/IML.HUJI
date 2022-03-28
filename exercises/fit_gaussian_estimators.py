@@ -36,7 +36,7 @@ def test_multivariate_gaussian():
     MG.fit(X2)
     print("expectation2: \n", MG.mu_, "\n", "covar matrix: \n", MG.cov_)
 
-    # Question 5 - Likelihood evaluation
+    # # Question 5 - Likelihood evaluation
     f1 = np.linspace(-10, 10, 200)
     f3 = np.linspace(-10, 10, 200)
     log_matrix = np.array([[MultivariateGaussian.log_likelihood(np.array([f1[i], 0, f3[j], 0]), cov_matrix, X2)
