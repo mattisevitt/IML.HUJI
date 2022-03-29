@@ -33,12 +33,15 @@ def split_train_test(X: pd.DataFrame, y: pd.Series, train_proportion: float = .2
         Responses of test samples
 
     """
-    n = int(X.shape[0] * train_proportion)
-    train_X = X[:n]
-    train_y = y[:n]
-    test_X = X[train_X.shape[0]:]
-    test_y = y[train_y.shape[0]:]
+    train_size = int(X.shape[0] * train_proportion)
+    test_size = X.shape[0] - train_size
+    indexes = np.random.choice(X.shape[0], size=train_size)
+    train_X = X.iloc[indexes]
+    train_y = y.iloc[indexes]
+    test_X = X.drop(indexes)
+    test_y = y.drop(indexes)
     return [train_X, train_y, test_X, test_y]
+
 
 
 def confusion_matrix(a: np.ndarray, b: np.ndarray) -> np.ndarray:
