@@ -69,6 +69,7 @@ class LinearRegression(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
+        X = np.append(np.ones((X.shape[0], 1)), X, axis=1)
         return X@self.coefs_
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
