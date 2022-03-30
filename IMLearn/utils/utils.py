@@ -34,12 +34,13 @@ def split_train_test(X: pd.DataFrame, y: pd.Series, train_proportion: float = .2
 
     """
     train_size = int(X.shape[0] * train_proportion)
-    test_size = X.shape[0] - train_size
-    indexes = np.random.choice(X.shape[0], size=train_size)
-    train_X = X.iloc[indexes]
-    train_y = y.iloc[indexes]
-    test_X = X.drop(indexes)
-    test_y = y.drop(indexes)
+    # indexes = np.random.choice(X.shape[0], size=train_size)
+    indexes = np.arange(X.shape[0])
+    np.random.shuffle(indexes)
+    train_X = X.iloc[indexes[:train_size]]
+    train_y = y.iloc[indexes[:train_size]]
+    test_X = X.iloc[indexes[train_size:]]
+    test_y = y.iloc[indexes[train_size:]]
     return [train_X, train_y, test_X, test_y]
 
 

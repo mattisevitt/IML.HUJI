@@ -55,7 +55,8 @@ class PolynomialFitting(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        return X@self.coefs_
+        transformed_X = self.__transform(X)
+        return transformed_X@self.coefs_
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """

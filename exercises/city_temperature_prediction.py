@@ -13,7 +13,8 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 1000)
 pd.set_option('display.colheader_justify', 'center')
 pd.set_option('display.precision', 3)
-
+MONTHS = np.array([1,2,3,4,5,6,7,8,9,10,11,12])
+COUNTRIES = np.array(['Israel', 'Jordan', 'South Africa', 'The Netherlands'])
 def load_data(filename: str) -> pd.DataFrame:
     """
     Load city daily temperature dataset and preprocess data.
@@ -43,18 +44,43 @@ if __name__ == '__main__':
     israel_df['Year'] = israel_df['Year'].astype(str)
     fig1 = px.scatter(israel_df, x='DayOfYear', y='Temp', color='Year')
     fig1.show()
-    israel_df = israel_df.groupby('Month')
+    israel_df_grouped = israel_df.groupby('Month')
     fig2 = go.Figure()
-    for month in range(1,13):
-        fig2.add_trace(go.Bar(x=[month], y=[np.std(israel_df.get_group(month)['Temp'])]))
+    for month in MONTHS:
+        fig2.add_trace(go.Bar(x=[month], y=[np.std(israel_df_grouped.get_group(month)['Temp'])]))
     fig2.update_xaxes(title_text='months', type='category')
     fig2.update_yaxes(title_text='standard deviation of daily temperatures')
     fig2.show()
     # Question 3 - Exploring differences between countries
-    # raise NotImplementedError()
+    df = df.groupby(['Country', 'Month'])
+    new_df = pd.DataFrame()
+    fig3 = go.Figure()
+    for country in COUNTRIES:
+        average_temp = np.zeros(12)
+        dev_temp = np.zeros(12)
+        for month in MONTHS:
+            average_temp[month-1] = df.get_group((country,month))['Temp'].mean()
+            dev_temp[month-1] = np.std(df.get_group((country,month))['Temp'])
+        fig3.add_trace(go.Scatter(x=MONTHS, y=average_temp, error_y=dict(type='data', array=dev_temp, visible=True), name=country))
+    fig3.update_xaxes(title_text='months', type='category')
+    fig3.update_yaxes(title_text='Average Temperature')
+    fig3.show()
 
     # Question 4 - Fitting model for different values of `k`
-    # raise NotImplementedError()
 
+    X_train, y_train, X_test, y_test = split_train_test(israel_df['DayOfYear'], israel_df['Temp'], train_proportion=.75)
+    fig4 = go.Figure()
+    for k in np.arange(1,11):
+        model4 = PolynomialFitting(k)
+        model4.fit(X_train, y_train)
+        cur_los = model4.loss(X_test, y_test)
+        print("for value k={0} the loss is {1}".format(k, round(cur_los, 2)))
+        fig4.add_trace(go.Bar(x=[k], y=[round(cur_los, 2)]))
+    fig4.update_xaxes(title_text='k', type='category')
+    fig4.update_yaxes(title_text='loss')
+    fig4.show()
     # Question 5 - Evaluating fitted model on different countries
-    # raise NotImplementedError()
+    model5 = PolynomialFitting(5)
+    model5.fit(israel_df['DayOfYear'], israel_df['Temp'])
+
+
