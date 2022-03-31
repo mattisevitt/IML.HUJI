@@ -52,15 +52,15 @@ if __name__ == '__main__':
     fig2.update_yaxes(title_text='standard deviation of daily temperatures')
     fig2.show()
     # Question 3 - Exploring differences between countries
-    df = df.groupby(['Country', 'Month'])
+    df_grouped_c_m = df.groupby(['Country', 'Month'])
     new_df = pd.DataFrame()
     fig3 = go.Figure()
     for country in COUNTRIES:
         average_temp = np.zeros(12)
         dev_temp = np.zeros(12)
         for month in MONTHS:
-            average_temp[month-1] = df.get_group((country,month))['Temp'].mean()
-            dev_temp[month-1] = np.std(df.get_group((country,month))['Temp'])
+            average_temp[month-1] = df_grouped_c_m.get_group((country,month))['Temp'].mean()
+            dev_temp[month-1] = np.std(df_grouped_c_m.get_group((country,month))['Temp'])
         fig3.add_trace(go.Scatter(x=MONTHS, y=average_temp, error_y=dict(type='data', array=dev_temp, visible=True), name=country))
     fig3.update_xaxes(title_text='months', type='category')
     fig3.update_yaxes(title_text='Average Temperature')
@@ -82,5 +82,11 @@ if __name__ == '__main__':
     # Question 5 - Evaluating fitted model on different countries
     model5 = PolynomialFitting(5)
     model5.fit(israel_df['DayOfYear'], israel_df['Temp'])
+    df = df.groupby(['Country'])
+    fig5 = go.Figure()
+    for country in COUNTRIES[1:]:
+        fig5.add_trace(go.Bar(x=[country],
+                              y=[model5.loss(df.get_group(country)['DayOfYear'], df.get_group(country)['Temp'])]))
+    fig5.show()
 
 
