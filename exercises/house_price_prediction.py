@@ -53,9 +53,7 @@ def load_data(filename: str):
     # floors and conditions are not linear
     houses_df.rename(columns={'lat': 'area', 'yr_built':'age', 'sqft_basement': 'basement Y/N'}, inplace=True)
     price = houses_df['price']
-    houses_df = pd.get_dummies(houses_df, columns=['zipcode','date', 'area','floors','condition', 'view'])
-    # houses_df = pd.get_dummies(houses_df, columns=['zipcode', 'date', 'area'])
-    # combining waterfront and view
+    houses_df = pd.get_dummies(houses_df, columns=['zipcode','date', 'area', 'view'])
     houses_df.drop(['id', "yr_renovated", 'long', 'view_0.0','price'], axis=1, inplace=True)
     return [houses_df, price]
 
@@ -88,14 +86,13 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
 
 if __name__ == '__main__':
     np.random.seed(0)
-    # # Question 1 - Load and preprocessing of housing prices dataset
+    # Question 1 - Load and preprocessing of housing prices dataset
     X, y = load_data("..\datasets\house_prices.csv")
     # #
     # # # Question 2 - Feature evaluation with respect to response
     feature_evaluation(X,y, "exercise_2_plots")
-    #
     # # # Question 3 - Split samples into training- and testing sets.
-    # train_X, train_y, test_X, test_y = utils.split_train_test(X,y)
+    train_X, train_y, test_X, test_y = utils.split_train_test(X,y)
     # # # # Question 4 - Fit model over increasing percentages of the overall training data
     # # # # For every percentage p in 10%, 11%, ..., 100%, repeat the following 10 times:
     # # # #   1) Sample p% of the overall training data
@@ -103,47 +100,41 @@ if __name__ == '__main__':
     # # # #   3) Test fitted model over test set
     # # # #   4) Store average and variance of loss over test set
     # # # # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
-    # size_of_train = train_X.shape[0]
-    # model = LinearRegression()
-    # per_los = np.zeros([91,2])
-    # std_los = np.zeros(91)
-    # for k,i in enumerate(range(10, 101)):
-    #     cur_los = np.zeros(10)
-    #     for j in range(10):
-    #         idx = np.random.choice(size_of_train, size=int(size_of_train * (i/100)))
-    #         x_sample = train_X.iloc[idx]
-    #         y_sample = train_y.iloc[idx]
-    #         model.fit(x_sample, y_sample)
-    #         cur_los[j] = model.loss(test_X, test_y)
-    #     std_los[k] = 2 * np.std(cur_los)
-    #     per_los[k][0] = cur_los.mean()
-    #     per_los[k][1] = i
-    # # fig = px.line(per_los)
-    # per_los=per_los.transpose()
-    #
-    # # fig = go.Figure([go.Scatter(x=per_los[1], y=per_los[0], mode='lines')])
-    # fig = go.Figure([go.Scatter(x=per_los[1],
-    #                             y=per_los[0],
-    #                             mode='lines'),
-    #                  go.Scatter(x=per_los[1],
-    #                             y=per_los[0]+std_los,
-    #                             mode='lines',
-    #                             marker=dict(color='#444'),
-    #                             line=dict(width=1),
-    #                             showlegend=False),
-    #                  go.Scatter(x=per_los[1],
-    #                             y=per_los[0] - std_los,
-    #                             mode='lines',
-    #                             marker=dict(color='#444'),
-    #                             line=dict(width=1),
-    #                             showlegend=False,
-    #                             fillcolor='rgba(68, 68, 68, 0.3)',
-    #                             fill='tonexty')])
-    # fig.show()
+    size_of_train = train_X.shape[0]
 
-
-
-
-
-
-
+    model = LinearRegression()
+    per_los = np.zeros([91,2])
+    std_los = np.zeros(91)
+    for k,i in enumerate(range(10, 101)):
+        cur_los = np.zeros(10)
+        for j in range(10):
+            idx = np.random.choice(size_of_train, size=int(size_of_train * (i/100)), replace=False)
+            x_sample = train_X.iloc[idx]
+            y_sample = train_y.iloc[idx]
+            model.fit(x_sample, y_sample)
+            cur_los[j] = model.loss(test_X, test_y)
+        std_los[k] = 2 * np.std(cur_los)
+        per_los[k][0] = cur_los.mean()
+        per_los[k][1] = i
+    per_los=per_los.transpose()
+    fig = go.Figure([go.Scatter(x=per_los[1],
+                                y=per_los[0],
+                                mode='lines'),
+                     go.Scatter(x=per_los[1],
+                                y=per_los[0]+std_los,
+                                mode='lines',
+                                marker=dict(color='#444'),
+                                line=dict(width=1),
+                                showlegend=False),
+                     go.Scatter(x=per_los[1],
+                                y=per_los[0] - std_los,
+                                mode='lines',
+                                marker=dict(color='#444'),
+                                line=dict(width=1),
+                                showlegend=False,
+                                fillcolor='rgba(68, 68, 68, 0.3)',
+                                fill='tonexty')])
+    fig.update_xaxes(ticksuffix="%", title_text="percent of training set")
+    fig.update_yaxes(title_text="loss over test set")
+    fig.update_layout(title="Linear regression model over increasing percentages")
+    fig.show()

@@ -43,6 +43,9 @@ if __name__ == '__main__':
     israel_df = df.drop(not_israel_idx, axis=0)
     israel_df['Year'] = israel_df['Year'].astype(str)
     fig1 = px.scatter(israel_df, x='DayOfYear', y='Temp', color='Year')
+    fig1.update_layout(title="Relation between Temp and Day of the Year in Israel")
+    fig1.update_xaxes(title_text="Day of the Year")
+    fig1.update_yaxes(title_text="Temperature")
     fig1.show()
     israel_df_grouped = israel_df.groupby('Month')
     fig2 = go.Figure()
@@ -50,6 +53,7 @@ if __name__ == '__main__':
         fig2.add_trace(go.Bar(x=[month], y=[np.std(israel_df_grouped.get_group(month)['Temp'])]))
     fig2.update_xaxes(title_text='months', type='category')
     fig2.update_yaxes(title_text='standard deviation of daily temperatures')
+    fig2.update_layout(title="Standard Deviation of Daily Temperatures by Month")
     fig2.show()
     # Question 3 - Exploring differences between countries
     df_grouped_c_m = df.groupby(['Country', 'Month'])
@@ -61,9 +65,11 @@ if __name__ == '__main__':
         for month in MONTHS:
             average_temp[month-1] = df_grouped_c_m.get_group((country,month))['Temp'].mean()
             dev_temp[month-1] = np.std(df_grouped_c_m.get_group((country,month))['Temp'])
-        fig3.add_trace(go.Scatter(x=MONTHS, y=average_temp, error_y=dict(type='data', array=dev_temp, visible=True), name=country))
+        fig3.add_trace(go.Scatter(x=MONTHS, y=average_temp, error_y=dict(type='data', array=dev_temp,
+                                                                         visible=True), name=country))
     fig3.update_xaxes(title_text='months', type='category')
     fig3.update_yaxes(title_text='Average Temperature')
+    fig3.update_layout(title="Average Monthly Temperature by country With Error Bars (Using the Standard Deviation)")
     fig3.show()
 
     # Question 4 - Fitting model for different values of `k`
@@ -78,6 +84,7 @@ if __name__ == '__main__':
         fig4.add_trace(go.Bar(x=[k], y=[round(cur_los, 2)]))
     fig4.update_xaxes(title_text='k', type='category')
     fig4.update_yaxes(title_text='loss')
+    fig4.update_layout(title="Loss of Polynomial Models of Degree K")
     fig4.show()
     # Question 5 - Evaluating fitted model on different countries
     model5 = PolynomialFitting(5)
@@ -86,7 +93,10 @@ if __name__ == '__main__':
     fig5 = go.Figure()
     for country in COUNTRIES[1:]:
         fig5.add_trace(go.Bar(x=[country],
-                              y=[model5.loss(df.get_group(country)['DayOfYear'], df.get_group(country)['Temp'])]))
+                              y=[model5.loss(df.get_group(country)['DayOfYear'], df.get_group(country)['Temp'])],
+                              textposition='auto'))
+    fig5.update_layout(title="Model Error Over Each Country, While k=5")
+    fig5.update_yaxes(title_text="Loss")
     fig5.show()
 
 
