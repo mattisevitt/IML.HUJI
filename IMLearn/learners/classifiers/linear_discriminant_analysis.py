@@ -46,7 +46,18 @@ class LDA(BaseEstimator):
         y : ndarray of shape (n_samples, )
             Responses of input data to fit to
         """
-        raise NotImplementedError()
+        self.classes_ = np.unique(y)
+        # for i, k in enumerate(np.unique(y)):
+        #     n = np.sum(y == k)
+        #     self.mu_[i] = (1/n) * np.sum((y == k) * X, axis=0)
+        self.mu_ = np.array([(1 / np.sum(y == k )) * (np.sum((X[np.where(y == k)]), axis=0)) for k in np.unique(y)])
+        self.cov_ = np.zeros([X.shape[1], X.shape[1]])
+        for i in range(X.shape[0]):
+            a = X[i] - self.mu_[np.where(self.classes_ == y[i])]
+            self.cov_ += (a.transpose())@a
+        self.cov_ = self.cov_ / (y.size - self.classes_.size)
+        self._cov_inv = inv(self.cov_)
+        self.pi_ = np.array([np.sum(y == n_k) / y.size for n_k in self.classes_])
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -62,7 +73,19 @@ class LDA(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+        a = np.array([(self._cov_inv @ self.mu_[k]) for k in range(self.classes_.size)])
+        b = np.array([(np.log(self.pi_[k]) - 0.5 * self.mu_[k] @ self._cov_inv @ self.mu_[k])
+                      for k in range(self.classes_.size)])
+        for i in range(X.shape[0]):
+            arg_max_k = a[0] @ X[0] + b[0]
+            k = 0
+            for j in range(1, self.classes_.size):
+                if arg_max_k < (a[j] @ X[i] + b[j]):
+                    arg_max_k = a[j] @ X[i] + b[j]
+                    k = j
+            X[i] = self.classes_[k]
+
+
 
     def likelihood(self, X: np.ndarray) -> np.ndarray:
         """
@@ -82,7 +105,7 @@ class LDA(BaseEstimator):
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `likelihood` function")
 
-        raise NotImplementedError()
+
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -102,4 +125,4 @@ class LDA(BaseEstimator):
             Performance under missclassification loss function
         """
         from ...metrics import misclassification_error
-        raise NotImplementedError()
+        return misclassification_error(y, self.predict(X))

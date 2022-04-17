@@ -98,7 +98,8 @@ class Perceptron(BaseEstimator):
             for i in range(X.shape[0]):
                 if y[i] * (X[i] @ self.coefs_) <= 0:
                     self.coefs_ += y[i] * X[i]
-                    self.callback_values.append(self.callback_(X, y))
+                    self.fitted_ = True
+                    self.callback_values.append(self.callback_(self, X, y))
                     break
             else:
                 return
@@ -117,9 +118,9 @@ class Perceptron(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        if self.include_intercept_:
-            X = np.append(np.ones((X.shape[0], 1)),X,axis=1)
-        return X@self.coefs_
+        # if self.include_intercept_:
+        #     X = np.append(np.ones((X.shape[0], 1)),X,axis=1)
+        return 2 * ((X@self.coefs_) >= 0) -1
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
