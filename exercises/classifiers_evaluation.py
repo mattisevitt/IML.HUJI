@@ -80,6 +80,9 @@ def compare_gaussian_classifiers():
         # Load dataset
         X, y = load_dataset(f"../datasets/{f}")
         # Fit models and predict over training set
+        gaussian_model = GaussianNaiveBayes()
+        gaussian_model.fit(X,y)
+        gauss_prediction = gaussian_model.predict(X)
         lda_model = LDA()
         lda_model.fit(X,y)
         lda_prediction = lda_model.predict(X)
@@ -90,14 +93,22 @@ def compare_gaussian_classifiers():
         symbols = np.array(["circle", "square", "triangle-down"])
         colors = ["red", "green", "blue"]
         a = lda_model.loss(X, y)
-        fig1 = make_subplots(rows=1, cols=2)
-        fig1.add_trace(go.Scatter(x=X[:,0], y=X[:,1], mode="markers", marker=dict(color=lda_prediction, symbol=symbols[y])))
-        fig1.update_layout(title=f"LDA classifier  Accuracy: {lda_model.loss(X,y)}\n")
-        fig1.add_trace(go.Scatter(x=lda_model.mu_[:,0], y=lda_model.mu_[:,1],
+        fig = make_subplots(rows=1, cols=2,  subplot_titles=(f"LDA classifier  Accuracy: {lda_model.loss(X,y)}\n",
+                                                             f"Gaussian classifier  Accuracy: {gaussian_model.loss(X,y)}\n"))
+        fig.add_trace(go.Scatter(x=X[:,0], y=X[:,1], mode="markers",
+                                 marker=dict(color=lda_prediction, symbol=symbols[y])), row=1, col=1)
+        fig.add_trace(go.Scatter(x=lda_model.mu_[:,0], y=lda_model.mu_[:,1],
                                   mode="markers", marker=dict(color="black", symbol="x")))
         for i in range(lda_model.classes_.size):
-            fig1.add_trace(get_ellipse(lda_model.mu_[i], lda_model.cov_))
-        fig1.show()
+            fig.add_trace(get_ellipse(lda_model.mu_[i], lda_model.cov_))
+        fig.add_trace(go.Scatter(x=X[:, 0], y=X[:, 1], mode="markers",
+                                 marker=dict(color=gauss_prediction, symbol=symbols[y])), row=1, col=2)
+        fig.add_trace(go.Scatter(x=gaussian_model.mu_[:, 0], y=gaussian_model.mu_[:, 1],
+                                 mode="markers", marker=dict(color="black", symbol="x")), row=1, col=2)
+        for i in range(gaussian_model.classes_.size):
+            fig.add_trace(get_ellipse(gaussian_model.mu_[i], np.diag(gaussian_model.vars_[i])), row=1, col=2)
+
+        fig.show()
 
         # Add traces for data-points setting symbols and colors
         # raise NotImplementedError()
