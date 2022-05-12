@@ -46,8 +46,7 @@ class GaussianNaiveBayes(BaseEstimator):
         for i, k in enumerate(self.classes_):
             X_k = X[y == k]
             self.mu_[i] = np.mean(X_k, axis=0)
-            self.vars_[i] = np.var(X_k, axis=0)
-            # self.vars_[k] = (np.diag((X_k - self.mu_[k]).T@(X_k - self.mu_[k])/ X_k.size))
+            self.vars_[i] = np.var(X_k, axis=0, ddof=1)
 
 
 
@@ -89,20 +88,13 @@ class GaussianNaiveBayes(BaseEstimator):
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `likelihood` function")
-        # likelihood_func = lambda k, j, x: np.log(self.pi_[k]) + 0.5 * np.log(2 * np.pi * self.vars_[k][j]) \
-        #                                   - 0.5 * (np.square(x[j] - self.mu_[k][j]) *  self.vars_[k][j])
-        # likelihood_func = lambda k, x: np.prod([np.log(self.pi_[k]) - np.square(x[j]-self.mu_[k][j])\
-        #                                   - np.log(2 * self.vars_[k][j])\
-        #                                   - np.log(np.sqrt(2 * np.pi*self.vars_[k][j])) for j in range(x.size)])
-        likelihood_func = lambda k, x: np.log(self.pi_[k]) * np.prod([(-np.square(x[j] - self.mu_[k][j])
-                                                               / (2 * self.vars_[k][j]))
-                                                              - np.log(np.sqrt(2 * np.pi * self.vars_[k][j]))
-                                                              for j in range(x.size)])
-
         likelihood_matrix = np.zeros([X.shape[0], self.classes_.size])
         for i,x in enumerate(X):
             for k in range(self.classes_.size):
-                likelihood_matrix[i][k] = likelihood_func(k, x)
+                likelihood_matrix[i][k] = self.pi_[k] * np.prod([np.exp((-np.square(x[j] - self.mu_[k][j]))
+                                                               / (2 * self.vars_[k][j]))
+                                                              * (1 / np.sqrt(2 * np.pi * self.vars_[k][j]))
+                                                              for j in range(x.size)])
         return likelihood_matrix
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:

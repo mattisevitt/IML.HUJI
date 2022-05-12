@@ -36,9 +36,9 @@ def misclassification_error(y_true: np.ndarray, y_pred: np.ndarray, normalize: b
     -------
     Misclassification of given predictions
     """
-    if bool:
-        return np.sum(y_true == y_pred) / (y_true.size)
-    return np.sum(y_true == y_pred)
+    if normalize:
+        return np.sum(y_true != y_pred) / (y_true.size)
+    return np.sum(y_true != y_pred)
 
 
 

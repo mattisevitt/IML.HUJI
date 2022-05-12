@@ -6,7 +6,8 @@ import numpy as np
 
 
 def default_callback(fit: Perceptron, x: np.ndarray, y: int):
-    return fit.loss(x,y)
+    pass
+
 
 
 class Perceptron(BaseEstimator):
@@ -140,4 +141,6 @@ class Perceptron(BaseEstimator):
             Performance under missclassification loss function
         """
         from ...metrics import misclassification_error
+        if self.include_intercept_:
+            X = np.append(np.ones((X.shape[0], 1)),X,axis=1)
         return misclassification_error(y, self.predict(X))
